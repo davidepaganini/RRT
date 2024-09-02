@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits import mplot3d
 from matplotlib.animation import FuncAnimation
+from networkx.algorithms.bipartite import color
+from numpy.ma.core import shape
+
 from robot import get_robot_cylinders_and_spheres
 
 
@@ -14,7 +17,7 @@ def plot_sphere(ax, sphere):
     x = center[0] + radius * np.cos(u) * np.sin(v)
     y = center[1] + radius * np.sin(u) * np.sin(v)
     z = center[2] + radius * np.cos(v)
-    ax.plot_surface(x, y, z, color=color, alpha=0.5)
+    ax.plot_surface(x, y, z, color=color, alpha=0.85)
 
 
 def plot_cylinder(ax, cylinder):
@@ -45,7 +48,7 @@ def plot_cylinder(ax, cylinder):
                cylinder_vector[i] * t +
                radius * np.sin(theta) * n1[i] +
                radius * np.cos(theta) * n2[i] for i in [0, 1, 2]]
-    ax.plot_surface(X, Y, Z, color=cylinder["color"], alpha=0.5)
+    ax.plot_surface(X, Y, Z, color=cylinder["color"], alpha=0.85)
 
 
 def plot_cuboid(ax, cuboid):
@@ -159,4 +162,75 @@ def create_animation(path, obstacles, name):
 
     ani = FuncAnimation(fig, update, frames=len(path), repeat=False)
     ani.save(name, writer='imagemagick')
+    plt.show()
+
+def create_figure(path, obstacles, name):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    cylinders_robot, spheres_robot = get_robot_cylinders_and_spheres(path[0])
+    spheres = []
+    spheres.extend(spheres_robot)
+    if obstacles["spheres"] is not None:
+        spheres.extend(obstacles["spheres"])
+    render_scene(ax, cylinders=cylinders_robot, spheres=spheres, cuboids=obstacles["cuboids"])
+
+
+    # cylinders = []
+    # spheres = []
+    # for frame in range(len(path)):
+    #
+    #     # cylinders_start, spheres_start = get_robot_cylinders_and_spheres(path[0], color="c")
+    cylinders_end, spheres_end = get_robot_cylinders_and_spheres(path[-1], color="m")
+    render_scene(ax, cylinders=cylinders_end, spheres=spheres_end, cuboids=obstacles["cuboids"])
+    #     # cylinders.extend(cylinders_start)
+    #     # cylinders.extend(cylinders_end)
+    #     # spheres.extend(spheres_start)
+    #     # spheres.extend(spheres_end)
+    #     cylinders_robot, spheres_robot = get_robot_cylinders_and_spheres(path[frame])
+    #     spheres.extend(spheres_robot)
+    #     if obstacles["spheres"] is not None:
+    #         spheres.extend(obstacles["spheres"])
+    #     cylinders.extend(cylinders_robot)
+    #     ax.set_xlim(initial_xlim)
+    #     ax.set_ylim(initial_ylim)
+    #     ax.set_zlim(initial_zlim)
+
+    eex = []
+    eey = []
+    eez = []
+    coord_to_plot = []
+    for sphere_idx in range(len(spheres_robot)):
+        coord_to_plot.append([[], [], []])
+
+    for index in range(len(path)):
+        cylinders_robot, spheres_robot = get_robot_cylinders_and_spheres(path[index])
+        eex.append(spheres_robot[-1]["center"][0])
+        eey.append(spheres_robot[-1]["center"][1])
+        eez.append(spheres_robot[-1]["center"][2])
+        for sphere_idx in range(len(spheres_robot)):
+            coord_to_plot[sphere_idx][0].append(spheres_robot[sphere_idx]["center"][0])
+            coord_to_plot[sphere_idx][1].append(spheres_robot[sphere_idx]["center"][1])
+            coord_to_plot[sphere_idx][2].append(spheres_robot[sphere_idx]["center"][2])
+
+    for sphere_idx in range(len(spheres_robot)):
+        if sphere_idx == len(spheres_robot)-1:
+            ax.plot(coord_to_plot[sphere_idx][0], coord_to_plot[sphere_idx][1],coord_to_plot[sphere_idx][2], color="r")
+        else:
+            ax.plot(coord_to_plot[sphere_idx][0], coord_to_plot[sphere_idx][1], coord_to_plot[sphere_idx][2], color=[0.5,0.5,0.5])
+    # render_scene(ax, cylinders, spheres, obstacles["cuboids"])
+    # ax.plot(eex, eey, eez)
+
+    ax.view_init(elev=25, azim=45)
+    plt.savefig("Complex_biRRTView45.png")
+
+    ax.view_init(elev=90, azim=0)
+    plt.savefig("Complex_biRRTViewTop.png")
+
+    ax.view_init(elev=0, azim=0)
+    plt.savefig("Complex_biRRTViewFront.png")
+
+    ax.view_init(elev=0, azim=90)
+    plt.savefig("Complex_biRRTViewSide.png")
+
+
     plt.show()

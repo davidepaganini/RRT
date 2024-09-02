@@ -11,19 +11,25 @@ if __name__ == '__main__':
     obstacles = {"cylinders": None, "spheres": [], "cuboids": None}
     cylinders_start, _ = get_robot_cylinders_and_spheres(start_joints)
     cylinders_goal, _ = get_robot_cylinders_and_spheres(end_joints)
-    while len(obstacles["spheres"]) < 50:
-        possible_sphere = {"center": np.random.uniform(low=[-3,-1.5,-2], high=[3,1.5,3]), "color": "g", "radius": 0.25}
-        is_collision_start = is_in_collision(cylinders_start,
-                                             {"cylinders": None, "spheres": [possible_sphere], "cuboids": None})
-        is_collision_goal = is_in_collision(cylinders_goal,
-                                            {"cylinders": None, "spheres": [possible_sphere], "cuboids": None})
-        if not is_collision_start and not is_collision_goal:
-            obstacles["spheres"].append(possible_sphere)
-    possible_sphere = {"center": np.array([1.5, 0, 1]), "color": "g", "radius": 0.25}
-    obstacles["spheres"].append(possible_sphere)
+
+    grid = np.linspace(-2,2, 4)
+    for x in grid:
+        for y in grid:
+            for z in grid:
+                possible_sphere = {"center": np.array([1,y,z]), "color": "g",
+                                   "radius": 0.25}
+                is_collision_start = is_in_collision(cylinders_start,
+                                                     {"cylinders": None, "spheres": [possible_sphere], "cuboids": None})
+                is_collision_goal = is_in_collision(cylinders_goal,
+                                                    {"cylinders": None, "spheres": [possible_sphere], "cuboids": None})
+                if not is_collision_start and not is_collision_goal:
+                    obstacles["spheres"].append(possible_sphere)
+    # possible_sphere = {"center": np.array([1.5, 0, 1]), "color": "g", "radius": 0.25}
+    # obstacles["spheres"].append(possible_sphere)
 
     path = birrt_star(start_joints, end_joints, obstacles)
-    simplified_path = simplify_path(path, obstacles)
+    # simplified_path = simplify_path(path, obstacles)
+    simplified_path = path
     simplified_longer_path = [simplified_path[0]]
     for index1, joints in enumerate(simplified_path):
         if index1 != 0:

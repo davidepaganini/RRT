@@ -248,6 +248,8 @@ def simplify_path(path, obstacles, base_tform=np.eye(4)):
     for index in viable_moves:
         simplified_path.append(longer_path[index])
     print("Simplified the path!")
+    print(f"Original Lenght: {len(longer_path)}")
+    print(f"Pruned Length: {len(simplified_path)}")
     return simplified_path
 
 
@@ -290,16 +292,18 @@ if __name__ == '__main__':
     #                         {"min_dim": np.array([2, 0.25, -2]), "max_dim": np.array([2.25, 0.5, 2.25]), "color": "c"}]
 
     path = birrt_star(start_joints, end_joints, obstacles)
-    simplified_path = simplify_path(path, obstacles)
+    # simplified_path = simplify_path(path, obstacles)
 
-    simplified_longer_path = []
-    simplified_longer_path.append(simplified_path[0])
-    for index1, joints in enumerate(simplified_path):
-        if index1 != 0:
-            from_node = TreeNode(simplified_path[index1 - 1])
-            to_node = TreeNode(simplified_path[index1])
-            _, distance_vector = get_nodes_distance_and_vector(from_node, to_node)
-            increments = np.linspace(np.array([0, 0, 0, 0, 0]), distance_vector, 10)
-            for index2 in range(1, increments.shape[0]):
-                simplified_longer_path.append(from_node.joints + increments[index2])
-    create_animation(simplified_longer_path, obstacles, "test.gif")
+    # simplified_longer_path = []
+    # simplified_longer_path.append(simplified_path[0])
+    # for index1, joints in enumerate(simplified_path):
+    #     if index1 != 0:
+    #         from_node = TreeNode(simplified_path[index1 - 1])
+    #         to_node = TreeNode(simplified_path[index1])
+    #         _, distance_vector = get_nodes_distance_and_vector(from_node, to_node)
+    #         increments = np.linspace(np.array([0, 0, 0, 0, 0]), distance_vector, 10)
+    #         for index2 in range(1, increments.shape[0]):
+    #             simplified_longer_path.append(from_node.joints + increments[index2])
+    # create_animation(simplified_longer_path, obstacles, "test.gif")
+
+    create_animation(path, obstacles, "test.gif")
